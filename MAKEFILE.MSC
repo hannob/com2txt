@@ -1,0 +1,18 @@
+# makefile for MS-C and ASCII software tools make.exe
+CC = cl
+CFLAGS = /Os
+OBJS = com2txt.obj hdr_data.obj encode.obj getopt.obj
+LIBS = 
+
+.SUFFIXES: .c
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $<
+
+com2txt.exe: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS)
+
+com2txt.obj encode.obj: common.h
+
+lint:
+	$(CC) $(CFLAGS) /Zs /W3 *.c

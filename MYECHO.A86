@@ -1,0 +1,70 @@
+; これはおまけです。詳しくはreadme.docの§7を見てください。
+; myecho.com 使い方:
+;	myecho 文字列…
+;   DOSの内部コマンドechoとほぼ同様ですが、次の差異があります。
+;    1) echoは、echo offやecho onや引数なしのechoを特別扱いするが、myechoは
+;	常に単なるエコー。
+;    2) $0a のように「$」の後に16進2桁が来ると、その文字コードの文字を出力。
+;      「$」自身を表示したければ「$$」とすること。また、「$」の後ろがこれら
+;       以外であった場合には動作の保証はしない。
+;    3) 表示の最後では改行しない。改行したければ引数の最後に「$0d$0a」を指定
+;	すること。
+; 例 myecho This $1b[32mis$1b[m a pen.$0d$0a
+;	…「This is a pen.」と出力するがisのところだけ緑色になる。その後改行
+;    myecho $$1 is \100.$20
+;	…「$1 is \100.」の直後に空白を1つ表示し、改行を行わない
+;    myecho $fuhyohyo
+;	…誤り(「$」の後ろが16進2桁でも「$」でもない)
+
+cgroup	group	text
+text	cseg
+	rs	100h
+
+main:
+	mov	di,0080h
+	mov	cl,0ch
+
+findarg:
+	call	readchar
+	cmp	al,21h
+	jc	findarg
+
+loop:
+	cmp	al,'$'
+	jnz	putchar
+
+	call	readchar
+	cmp	al,'$'
+	jz	putchar
+	call	ctoi
+	shl	ax,cl
+	call	readhex
+	or	al,ah
+
+putchar:
+	mov	dl,al
+	mov	ah,2
+	int	21h
+	call	readchar
+	jmp	loop
+
+readchar:
+	inc	di
+	mov	al,[di]
+	cmp	al,0dh
+	jnz	ctoiret
+	mov	ax,4c00h
+	int	21h		; exit
+
+readhex:
+	call	readchar
+ctoi:
+	and	al,1fh
+	sub	al,10h
+	jnc	ctoiret
+	add	al,19h
+ctoiret:
+	ret
+
+stop:
+	end

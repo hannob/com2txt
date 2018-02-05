@@ -1,0 +1,16 @@
+# makefile for LSI-C
+CC = lcc
+CFLAGS = -DLSI_C -O -wi
+OBJS = com2txt.obj hdr_data.obj encode.obj getopt.obj
+SLIBS = -acdos.obj
+LIBS = -lnoexpand.obj -lintlib -ldoslib
+
+.SUFFIXES: .c
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $<
+
+com2txt.exe: $(OBJS)
+	$(CC) $(CFLAGS) $(SLIBS) $(OBJS) $(LIBS)
+
+com2txt.obj encode.obj: common.h

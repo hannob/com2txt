@@ -1,0 +1,81 @@
+; readme.docの§7で使う、サンプル・アセンブリ言語ファイルです。
+cgroup	group	text
+text	cseg
+	rs	100h
+
+main:
+	mov	di,0080h
+	mov	cx,di
+	inc	cx
+	add	cl,[di]
+	call	find_arg
+	jz	usage_exit
+	mov	al,[di]
+	sub	al,'0'
+	cmp	al,'3'-'0'
+	jnc	usage_exit
+	mov	si,ax
+	call	find_arg
+	dec	di
+	dec	di
+	mov	[di].w,0a0dh	; CR LF
+	mov	bx,0001h
+	sub	cx,di
+prom_keyin:
+	mov	dx,di
+	mov	ah,40h		; write to stdout
+	int	21h
+	mov	ax,0c01h	; make keybuf empty & input 1 char
+	int	21h
+	mov	dx,si
+	dec	dl
+	jz	case_2
+	dec	dl
+	jz	case_1
+case_0:
+	sub	al,'0'
+	cmp	al,0ah
+	jnc	prom_keyin
+	db	3dh		; make next 'mov al,0h' void
+exit_0:
+	mov	al,0h
+	db	3dh		; make next 'mov al,0ffh' void
+exit_ff:
+	mov	al,0ffh
+case_1:
+	mov	ah,4ch		; process terminate
+	int	21h
+case_2:
+	cmp	al,'a'
+	jnc	lcase_cmp
+	add	al,'a'-'A'
+lcase_cmp:
+	cmp	al,'y'
+	jz	exit_0
+	cmp	al,'n'
+	jz	exit_ff
+	jmp	prom_keyin
+
+strusage:
+; usage表示用文字列
+	db	"Usage: batkey {0,1,2} prompt ...", 0dh, 0ah, '$'
+
+usage_exit:
+; usageを表示してexit 0ffhする
+	mov	ah,09h		; string output
+	mov	dx,strusage
+	int	21h
+	jmp	exit_ff
+
+find_arg:
+; 引数探し。見つかればNON ZERO、でなければZEROで戻る
+	inc	di
+	cmp	[di].b,0dh	; LF
+	jz	find_ret
+	cmp	[di].b,' '
+	jna	find_arg
+find_ret:
+	ret
+
+stop:
+	end

@@ -1,0 +1,13 @@
+CC=cc
+CFLAGS=-O -DUNIX
+
+OBJS=com2txt.o hdr_data.o encode.o getopt.o
+SRCS=com2txt.c hdr_data.c encode.c getopt.c
+
+com2txt: $(OBJS)
+	$(CC) $(OBJS) -s -o com2txt
+clean:
+	rm -f $(OBJS) dshar core *~ *# *.orig
+
+com2txt.o: common.h
+encode.o: common.h
